@@ -1,3 +1,5 @@
+> 📝 **Not:** Bu projeye ait tüm kaynak kodlar `index.html` dosyasında yer almaktadır. Dosya içerisinde HTML, CSS ve JavaScript kodları birlikte bulunmaktadır.
+
 # 🌲 Kayıp Ormanın Gizemi – Etkileşimli Metin Tabanlı Macera Oyunu
 
 ## 🎮 Proje Hakkında
