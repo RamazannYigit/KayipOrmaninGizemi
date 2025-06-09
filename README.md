@@ -1,3 +1,7 @@
+> 📝 **Not:** Bu projeye ait tüm kaynak kodlar `index.html` dosyasında yer almaktadır. Dosya içerisinde HTML, CSS ve JavaScript kodları birlikte bulunmaktadır.
+
+> 🌐 **Projeyi denemek isterseniz:** [https://kayip-ormanin-gizemi.glitch.me](https://kayip-ormanin-gizemi.glitch.me) 
+
 # 🌲 Kayıp Ormanın Gizemi – Etkileşimli Metin Tabanlı Macera Oyunu
 
 ## 🎮 Proje Hakkında
