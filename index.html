@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıp Ormanın Gizemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(to bottom, #2c3e50, #34495e); /* Koyu, orman temalı degrade */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #ecf0f1; /* Açık renk metin */
+            line-height: 1.6;
+            overflow-y: auto; /* İçerik taşarsa kaydırma çubuğu */
+            padding: 20px 0;
+        }
+
+        .container {
+            background: rgba(44, 62, 80, 0.9); /* Yarı şeffaf koyu arka plan */
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #34495e;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: 'Merriweather', serif;
+            font-size: 3.2rem;
+            color: #e67e22; /* Turuncu başlık */
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+        }
+
+        #game-stats {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #bdc3c7;
+        }
+
+        #health, #inventory-display, #weapon-display, #armor-display {
+            background: rgba(52, 73, 94, 0.7);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+            border: 1px solid #2c3e50;
+        }
+
+        #story-text {
+            font-size: 1.25rem;
+            margin-bottom: 40px;
+            color: #ecf0f1;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .choices button {
+            display: block;
+            width: 100%;
+            padding: 18px 25px;
+            margin-bottom: 18px;
+            border: none;
+            border-radius: 10px;
+            background-color: #27ae60; /* Yeşil buton */
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .choices button:hover {
+            background-color: #2ecc71;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .choices button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .choices button:disabled {
+            background-color: #7f8c8d; /* Pasif buton rengi */
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+        .choices .inventory-action-button {
+            background-color: #8e44ad; /* Mor renk */
+            margin-top: 10px;
+            padding: 10px 15px;
+            font-size: 1rem;
+        }
+
+        .choices .inventory-action-button:hover {
+            background-color: #9b59b6;
+        }
+
+        /* Oyun Sonu ve Ölüm Ekranı */
+        .end-game-message {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #e74c3c; /* Kırmızı renk */
+            margin-top: 40px;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        .restart-button {
+            background-color: #3498db; /* Mavi yeniden başlat butonu */
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s ease;
+            display: inline-block; /* Ortalamak için */
+        }
+
+        .restart-button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Responsive Tasarım */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .container {
+                padding: 25px;
+            }
+            #game-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .choices button {
+                font-size: 1.1rem;
+                padding: 15px 20px;
+            }
+            .end-game-message {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kayıp Ormanın Gizemi</h1>
+
+        <div id="game-stats">
+            <div id="health">Can: 100 CP</div>
+            <div id="weapon-display">Silah: Yok</div>
+            <div id="armor-display">Zırh: Yok</div>
+            <div id="inventory-display">Envanter: Boş</div>
+        </div>
+
+        <p id="story-text"></p>
+        <div class="choices" id="choices">
+        </div>
+        <div id="game-over-message" class="end-game-message" style="display: none;"></div>
+        <button id="restart-button" class="restart-button" onclick="startGame()" style="display: none;">Tekrar Başla</button>
+    </div>
+
+    <script>
+        // Oyun durumu
+        let player = {
+            health: 100,
+            inventory: [],
+            weapon: null, // Başlangıçta silah yok
+            armor: null, // Başlangıçta zırh yok
+            currentScene: 'start',
+            previousScene: null, // Önceki sahneyi takip etmek için
+            hasMapPiece: false, // Harita parçası olup olmadığını kontrol et
+            hasAncientScroll: false, // Antik parşömen olup olmadığını kontrol et
+            day: 1 // Gün takibi
+        };
+
+        // UI Elementleri
+        const storyTextElement = document.getElementById('story-text');
+        const choicesElement = document.getElementById('choices');
+        const healthDisplay = document.getElementById('health');
+        const inventoryDisplay = document.getElementById('inventory-display');
+        const weaponDisplay = document.getElementById('weapon-display');
+        const armorDisplay = document.getElementById('armor-display');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const restartButton = document.getElementById('restart-button');
+
+        // Yaratıklar ve Özellikleri
+        const creatures = {
+            'Gölge Uluyanı': {
+                health: 40,
+                attack: 15,
+                weakness: 'Meşale', // Örnek zayıflık, şu an oyunda meşale yok
+                itemDrop: 'Deri Zırh' // Gölge Uluyanı'ndan düşen eşya
+            },
+            'Mantar Devriyesi': {
+                health: 60,
+                attack: 20,
+                itemDrop: 'Mantar Zırhı'
+            },
+            'Kristal Örümcek': { // Yeni yaratık
+                health: 70,
+                attack: 25,
+                itemDrop: 'Parlayan Kılıç' // Örümcekten kılıç düşsün
+            },
+            'Antik Gözcü': {
+                health: 100,
+                attack: 30,
+                weakness: 'Antik Parşömen' // Zayıflık eşyası
+            }
+        };
+
+        // Silahlar ve Özellikleri
+        const weapons = {
+            'Paslı Bıçak': { damage: 10 },
+            'Taş Balta': { damage: 20 },
+            'Parlayan Kılıç': { damage: 35 }
+        };
+
+        // Zırhlar ve Özellikleri
+        const armors = {
+            'Deri Zırh': { defense: 10 },
+            'Mantar Zırhı': { defense: 15 }
+        };
+
+        // Hikaye Sahneleri
+        const story = {
+            start: {
+                text: "Karanlık ve nemli bir ormanda uyanıyorsunuz. Hafızanızda tek bir anı kırıntısı bile yok. Üzerinizde yırtık pırtık giysiler ve elinizde paslı bir **Bıçak** var. Önünüzde iki yol beliriyor: Biri derin çalılıklarla kaplı, diğeri ise rüzgarda uğuldayan ağaçların gölgelerinden geçen daha belirgin bir patika. Hangi yolu seçersiniz?",
+                choices: [
+                    { text: "Çalılıkların arasına dal.", nextScene: "bushy_path" },
+                    { text: "Belirgin patikayı takip et.", nextScene: "clear_path" }
+                ],
+                onEnter: () => {
+                    player.weapon = 'Paslı Bıçak'; // Başlangıçta bıçak verir
+                }
+            },
+            bushy_path: {
+                text: "Çalılıkların arasına daldınız. Her adımınızda dikenler ve dallar elbisenizi yırtıyor, cildinizi çiziyor. Kısa süre sonra önünüze çamurlu, bataklık bir alan çıktı. Karşıya geçmek için deneyecek misiniz?",
+                choices: [
+                    { text: "Bataklığı geçmeye çalış.", nextScene: "swamp" },
+                    { text: "Geri dön ve diğer patikayı dene.", nextScene: "clear_path_from_bushy" }
+                ],
+                healthChange: -5 // Çalılıklar yüzünden küçük hasar
+            },
+            clear_path_from_bushy: {
+                text: "Çalılıkların arasından geri döndünüz ve belirgin patikaya geçtiniz. Yolda parlak, kırmızı renkli bir **Mantar** fark ettiniz. Zehirli mi yoksa şifalı mı olduğunu bilemezsiniz. Yer misiniz, alıp yanınızda mı taşırsınız?",
+                choices: [
+                    { text: "Mantarı ye.", nextScene: "eat_mushroom" },
+                    { text: "Mantarı envanterine ekle.", nextScene: "take_mushroom" },
+                    { text: "Mantarı görmezden gel ve ilerle.", nextScene: "continue_path" }
+                ]
+            },
+            clear_path: {
+                text: "Belirgin patikayı takip ettiniz. Hava daha açık ve kuş sesleri duyuluyor. Yolda parlak, kırmızı renkli bir **Mantar** fark ettiniz. Zehirli mi yoksa şifalı mı olduğunu bilemezsiniz. Yer misiniz, alıp yanınızda mı taşırsınız?",
+                choices: [
+                    { text: "Mantarı ye.", nextScene: "eat_mushroom" },
+                    { text: "Mantarı envanterine ekle.", nextScene: "take_mushroom" },
+                    { text: "Mantarı görmezden gel ve ilerle.", nextScene: "continue_path" }
+                ]
+            },
+            swamp: {
+                text: "Bataklığa girmeye karar verdiniz. Her adımınızda daha da derine batıyorsunuz. Gücünüz tükeniyor ve bataklığın dibinden gelen uğultular duyuyorsunuz. Son bir çaba gösterip kurtulmaya çalışın!",
+                choices: [
+                    { text: "Çamurdan kurtulmak için tüm gücünü kullan.", nextScene: "struggle_swamp" },
+                    { text: "Yardım çağır (Çaresiz bir girişim).", nextScene: "death_swamp" }
+                ]
+            },
+            struggle_swamp: {
+                text: "Çamurdan kurtulmak için son bir hamle yaptınız. Neredeyse battınız, ama son anda bir ağaç köküne tutunarak kendinizi dışarı çekmeyi başardınız. Yorgun ve ıslaksınız, ama hayattasınız. Önünüzde yeni bir yol belirdi: yıkık dökük bir köprüye çıkan dik bir yokuş.",
+                healthChange: -30, // Bataklıkta çok hasar
+                choices: [
+                    { text: "Köprüye doğru ilerle.", nextScene: "bridge" }
+                ]
+            },
+            eat_mushroom: {
+                text: "Mantarı yediniz. Tadı garip, ama anında kendinizi daha iyi hissettiniz! Hafifçe başınız döndü ama gücünüz yerine geldi.",
+                healthChange: +20, // Can iyileşmesi
+                choices: [
+                    { text: "Patikada ilerlemeye devam et.", nextScene: "continue_path" }
+                ]
+            },
+            take_mushroom: {
+                text: "Mantarı envanterinize eklediniz. Belki daha sonra işe yarar. Patikada ilerlemeye devam edersiniz.",
+                itemGained: 'Mantar',
+                choices: [
+                    { text: "Patikada ilerlemeye devam et.", nextScene: "continue_path" }
+                ]
+            },
+            use_item_dynamic: { // Dinamik olarak içeriği doldurulacak
+                text: "",
+                healthChange: 0,
+                itemLost: "",
+                choices: [
+                    { text: "İlerle.", nextScene: player => player.previousScene }
+                ]
+            },
+            continue_path: {
+                text: "Patikada ilerlerken, uzaktan cılız bir ışık fark ettiniz. Yaklaştıkça bunun eski, terk edilmiş bir kulübe olduğunu anladınız. Kulübenin kapısı aralık duruyor. İçeri girer misiniz, yoksa etrafından dolaşır mısınız?",
+                choices: [
+                    { text: "Kulübeye gir.", nextScene: "cabin" },
+                    { text: "Kulübenin etrafından dolaş.", nextScene: "bypass_cabin" }
+                ]
+            },
+            cabin: {
+                text: "Kulübeye sessizce girdiniz. İçerisi soğuk ve tozlu. Ortada eski bir masa var ve üzerinde paslı bir **Anahtar** duruyor. Köşede ise örtüyle kapatılmış, garip bir şekil var. Anahtarı alır mısınız, yoksa örtüyü kaldırıp altında ne olduğuna mı bakarsınız?",
+                choices: [
+                    { text: "Anahtarı al.", nextScene: "take_key_cabin" },
+                    { text: "Örtüyü kaldır.", nextScene: "lift_cover_cabin" }
+                ]
+            },
+            take_key_cabin: {
+                text: "Anahtarı aldınız. Cebinize koyarken, kulübeden garip sesler gelmeye başladı. Hızla dışarı fırladınız. Nereden geldiğini bilmediğiniz sesler uzaklaşınca, ileride, büyük bir ağacın dibinde, paslı bir kilitli sandık fark ettiniz. Anahtarla açmayı dener misiniz?",
+                itemGained: 'Anahtar',
+                choices: [
+                    { text: "Sandığı Anahtarla aç.", nextScene: "open_chest_with_key", itemRequired: 'Anahtar' },
+                    { text: "Sandığı görmezden gel ve ilerle.", nextScene: "deep_forest" }
+                ]
+            },
+            lift_cover_cabin: {
+                text: "Örtüyü kaldırdığınızda, altında keskin dişleri olan, uykuda bir yaratık gördünüz. Gözleri hafifçe aralandı ve size doğru döndü! Kaçmaya çalışın!",
+                choices: [
+                    { text: "Hızla kulübeden kaç.", nextScene: "escape_creature" },
+                    { text: "Bıçakla saldır.", nextScene: "fight_creature_cabin_start" } // Savaş başlangıç sahnesine yönlendir
+                ]
+            },
+            fight_creature_cabin_start: { // Savaş başlangıç sahnesi
+                text: "Yaratık size saldırıyor! Ne yapacaksınız?",
+                onEnter: () => startCombat('Gölge Uluyanı', 'after_cabin_creature_fight', 'death_creature_fight'),
+                choices: [] // Savaş sırasında butonlar startCombat tarafından eklenir
+            },
+            after_cabin_creature_fight: {
+                text: "Gölge Uluyanı'nı yendiniz! Kulübeden çıkan yolu takip ederek ormanın derinliklerine doğru ilerliyorsunuz. Elde ettiğiniz yeni Deri Zırhı giydiniz.",
+                armorGained: 'Deri Zırh',
+                choices: [
+                    { text: "Yola devam et.", nextScene: "deep_forest" }
+                ]
+            },
+            escape_creature: {
+                text: "Kulübeden panikle kaçtınız, ama yaratık size yetişti ve bacağınızı tırmaladı. Canınız yanıyor, ama ormanın daha derinlerine doğru kaçmayı başardınız.",
+                healthChange: -25,
+                choices: [
+                    { text: "Yaralı halde ormanın derinliklerine doğru ilerle.", nextScene: "deep_forest" }
+                ]
+            },
+            bypass_cabin: {
+                text: "Kulübenin etrafından dolaştınız. İçeriden gelen garip sesler sizi tedirgin etti. Biraz ileride, sık ormanlık bir alana geldiniz. Hava kararıyor.",
+                choices: [
+                    { text: "Geceyi geçirecek bir yer ara.", nextScene: "find_shelter" },
+                    { text: "Karanlığa rağmen ilerlemeye devam et.", nextScene: "travel_at_night" }
+                ]
+            },
+            find_shelter: {
+                text: "Hızla etrafınıza bakınırken, sık çalılıkların arasında gizlenmiş küçük bir girinti fark ettiniz. İçerisi oldukça dar ve nemli, ama en azından sizi rüzgardan ve vahşi hayvanlardan koruyabilir. Geceyi burada geçirmeyi kabul edersiniz.",
+                choices: [
+                    { text: "Geceyi girintide geçir.", nextScene: "sleep_in_shelter" }
+                ]
+            },
+            sleep_in_shelter: {
+                text: "Girintide zorlu bir gece geçirdiniz. Pek rahat edemediniz, ama güvende kaldınız ve sabaha kadar uyuyabildiniz. Sabah olduğunda, ormanın daha derinlerine doğru giden bir patika buldunuz.",
+                healthChange: +5,
+                onEnter: () => player.day++,
+                choices: [
+                    { text: "Patikayı takip et.", nextScene: "deep_forest" }
+                ]
+            },
+            open_chest_with_key: {
+                text: "Anahtarı kullanarak paslı sandığı açtınız. İçinde parlayan bir **İksir** ve eski, yıpranmış bir **Harita Parçası** buldunuz! İksiri hemen içtiniz ve vücudunuzdaki tüm ağrıların geçtiğini hissettiniz. Harita ormandan çıkış yolunu gösteriyor gibi. Bu harita sizi kurtarabilir!",
+                healthChange: +50,
+                itemLost: 'Anahtar',
+                itemGained: 'İksir',
+                onEnter: () => player.hasMapPiece = true,
+                choices: [
+                    { text: "Harita parçasıyla ormandan çıkmayı dene.", nextScene: "exit_forest_map" }
+                ]
+            },
+            exit_forest_map: {
+                text: "Harita parçasını takip ettiniz. Yönünüzü bulmakta zorlandınız, ama sonunda ormanın dış kenarına ulaştınız. Uzakta bir köyün ışıkları parlıyor. Tamamen güvenli değilsiniz, ama en azından ormandan çıktınız. **Nötr Bir Son.**",
+                choices: [],
+                ending: "neutral"
+            },
+            bridge: {
+                text: "Yıkık dökük köprüye ulaştınız. Altından gürül gürül bir nehir akıyor. Köprü her an çökecek gibi duruyor. Köprüden geçmeyi dener misiniz, yoksa nehri geçmek için başka bir yol mu ararsınız?",
+                choices: [
+                    { text: "Köprüden geçmeye çalış.", nextScene: "cross_bridge" },
+                    { text: "Nehri geçmek için başka bir yol ara.", nextScene: "search_for_ford" }
+                ]
+            },
+            cross_bridge: {
+                text: "Köprüden geçmeye başladınız. Her adımınızda tahtalar gıcırdıyor ve sallanıyor. Tam ortaya geldiğinizde, büyük bir parça koptu ve nehre düştü! Zar zor diğer tarafa atladınız, ama bacağınızı incittiniz.",
+                healthChange: -15,
+                choices: [
+                    { text: "İncinmiş bacağınla yola devam et.", nextScene: "river_bank" }
+                ]
+            },
+            search_for_ford: {
+                text: "Nehri geçmek için daha güvenli bir yer aradınız. Biraz ileride, sığ bir geçit buldunuz. Suyun soğukluğunu hissettiniz ama güvenle diğer tarafa geçtiniz.",
+                choices: [
+                    { text: "Nehrin diğer yakasından ilerle.", nextScene: "river_bank" }
+                ]
+            },
+            river_bank: {
+                text: "Nehrin diğer yakasından ilerlerken, toprağın altında garip bir metal parıltısı fark ettiniz. Kazmaya karar verdiniz ve eski, kilitli bir kutu buldunuz. Yanınızdaki **Bıçak** ile açmayı dener misiniz?",
+                choices: [
+                    { text: "Bıçakla kutuyu açmaya çalış.", nextScene: "open_box_with_knife", itemRequired: 'Paslı Bıçak' },
+                    { text: "Kutuyu görmezden gel ve ilerle.", nextScene: "deep_forest" }
+                ]
+            },
+            open_box_with_knife: {
+                text: "Bıçağınızı kullanarak kutuyu zorla açtınız. İçinde yıllanmış bir **Ekmek** ve küçük bir **Şifalı Bitki** buldunuz. Ekmekle açlığınızı giderdiniz, bitkiyle de yaralarınızı sardınız. Kendinizi daha iyi hissediyorsunuz.",
+                healthChange: +20,
+                itemGained: 'Ekmek',
+                itemGained2: 'Şifalı Bitki',
+                choices: [
+                    { text: "Ormanın derinliklerine doğru ilerle.", nextScene: "deep_forest" }
+                ]
+            },
+            deep_forest: {
+                text: "Ormanın daha derinlerine doğru ilerlediniz. Hava kararmaya başladı ve uzaktan uluyan sesler duyuluyor. Hızlıca bir barınak bulmalısınız.",
+                onEnter: () => player.day++,
+                choices: [
+                    { text: "Mağara ara.", nextScene: "find_cave" },
+                    { text: "Ağaçların arasına saklan.", nextScene: "hide_in_trees" },
+                    { text: "İlerle ve harabeleri keşfet.", nextScene: "path_to_ruins" }
+                ]
+            },
+            find_cave: {
+                text: "Büyük bir mağara buldunuz. İçerisi karanlık ve soğuk. Ama güvenli bir yer gibi duriyor. Geceyi burada geçirmeyi kabul eder misiniz?",
+                choices: [
+                    { text: "Evet, geceyi mağarada geçir.", nextScene: "sleep_in_cave" },
+                    { text: "Hayır, mağaranın etrafını keşfet.", nextScene: "explore_cave_entrance" }
+                ]
+            },
+            sleep_in_cave: {
+                text: "Girintide zorlu bir gece geçirdiniz. Pek rahat edemediniz, ama güvende kaldınız ve sabaha kadar uyuyabildiniz. Sabah olduğunda, ormanın daha derinlerine doğru giden bir patika buldunuz.",
+                healthChange: +20,
+                onEnter: () => player.day++,
+                choices: [
+                    { text: "Mağaranın derinliklerine ilerle.", nextScene: "cave_explore" }
+                ]
+            },
+            explore_cave_entrance: {
+                text: "Mağaranın etrafını keşfederken, zeminde eski bir **Kafatası** fark ettiniz. Yaklaştığınızda, kafatasının içinde parlayan küçük bir **Hafıza Taşı** buldunuz. Bu taş, size uzaklardan gelen bir sesin hafıza kırıntılarını fısıldadığını hissettiriyor. Hafızanızdan bir parça geri geldi gibi...",
+                itemGained: 'Hafıza Taşı',
+                choices: [
+                    { text: "Taşı al ve mağaraya dön.", nextScene: "sleep_in_cave" }
+                ]
+            },
+            hide_in_trees: {
+                text: "Ağaçların arasına saklandınız. Gece boyunca uluyan sesler yaklaştı ve uzaklaştı. Donmaktan son anda kurtuldunuz ama sabaha kadar titrediniz. Çok yorgun ve bitkinsiniz. Güneş doğduğunda, ormanın daha derinlerine doğru ilerlemek için kendinize bir yön seçmelisiniz.",
+                healthChange: -20,
+                onEnter: () => player.day++,
+                choices: [
+                    { text: "Sabah ormanda ilerle.", nextScene: "path_to_ruins" }
+                ]
+            },
+            cave_explore: {
+                text: "Mağaranın derinliklerine ilerlediniz. Yol çatallanıyor: sağda dar bir tünel, solda ise daha geniş ve nemli bir geçit. Ayrıca, duvarlarda garip semboller görüyorsunuz. Eğer **Hafıza Taşı**nız varsa, sembolleri çözmeye çalışabilirsiniz.",
+                choices: [
+                    { text: "Dar tüneli takip et.", nextScene: "narrow_tunnel" },
+                    { text: "Geniş geçidi takip et.", nextScene: "wide_passage" },
+                    { text: "Sembolleri incele (Hafıza Taşı gereklidir).", nextScene: "decode_symbols", itemRequired: 'Hafıza Taşı' }
+                ]
+            },
+            decode_symbols: {
+                text: "Hafıza Taşı ile sembolleri incelediniz. Zihninizde eski bir dil yankılandı ve bir anda her şeyi hatırladınız! Siz, ormandaki antik bir medeniyetin son üyelerindensiniz. Ormanın kalbinde saklı, kayıp bir tapınağa giden gizli bir geçit olduğunu biliyorsunuz. İşte bu taş size hatırlatıyor. Tapınakta bir hazine ve hafızanızın geri kalanı sizi bekliyor!",
+                choices: [
+                    { text: "Gizli geçidi bulmak için yola çık.", nextScene: "secret_passage_found" }
+                ]
+            },
+            narrow_tunnel: {
+                text: "Dar tünelde ilerlerken, tavan çöktü! Son anda kendinizi kurtardınız ama büyük bir taş bacağınızı ezdi. Kan kaybediyorsunuz ve hareket edemiyorsunuz. Yardım gelmiyor. **ÖLDÜNÜZ!**",
+                choices: [],
+                ending: "bad_death"
+            },
+            wide_passage: {
+                text: "Geniş geçitten ilerlediniz. Duvarlardan damlayan sular ve garip yankılar eşliğinde, kendinizi büyük bir yeraltı gölünün kenarında buldunuz. Gölün ortasında küçük bir ada var. Bir patika, mağaranın diğer ucuna doğru uzanıyor.",
+                choices: [
+                    { text: "Gölü geçmeye çalış (tehlikeli olabilir).", nextScene: "cross_lake" },
+                    { text: "Patikayı takip et.", nextScene: "path_out_of_cave" }
+                ]
+            },
+            secret_passage_found: {
+                text: "Hafıza Taşının rehberliğiyle, gizli geçidi buldunuz. Yıllardır kimsenin keşfetmediği antik bir tapınağa ulaştınız. İçeride sizi bekleyen sadece hazineler değil, aynı zamanda bu ormanın ve kendi geçmişinizin tüm sırları var! **MUHTEŞEM BİR SON!**",
+                choices: [],
+                ending: "true_good"
+            },
+            cross_lake: {
+                text: "Soğuk ve karanlık suyu geçmeye çalıştınız. Tam ortaya geldiğinizde, suyun altından devasa bir yılan çıktı ve sizi bir anda yuttu. **ÖLDÜNÜZ!**",
+                choices: [],
+                ending: "bad_death"
+            },
+            path_out_of_cave: {
+                text: "Patikayı takip ederek mağaradan çıktınız. Hava aydınlık, ormanın dış kenarına yaklaştığınızı hissediyorsunuz. Uzakta bir köyün ışıkları parlıyor gibi.",
+                choices: [
+                    { text: "Köye doğru ilerle.", nextScene: "village_safe_ending" }
+                ]
+            },
+            path_to_ruins: {
+                text: "Ormanda ilerlemeye devam ederken, uzakta eski, yıkık harabeler gördünüz. Merakınız sizi oraya doğru çekiyor.",
+                choices: [
+                    { text: "Harabeleri keşfet.", nextScene: "explore_ruins" },
+                    { text: "Harabelerin etrafından dolaş.", nextScene: "perilous_pass" }
+                ]
+            },
+            explore_ruins: {
+                text: "Harabeleri keşfettiniz. Duvarlarda solmuş freskler ve anlaşılmaz yazıtlar var. Bir odanın ortasında, üzerinde tuhaf semboller olan bir sunağın üzerinde küçük, parlayan bir **Muska** buldunuz. Muskayı alır mısınız?",
+                choices: [
+                    { text: "Muskayı al.", nextScene: "take_amulet" },
+                    { text: "Muskayı alma ve harabelerden çık.", nextScene: "perilous_pass" }
+                ]
+            },
+            take_amulet: {
+                text: "Muskayı aldığınızda, harabelerin içinden ürpertici bir ses yankılandı ve yer sallanmaya başladı! Hızla dışarı fırladınız, muska elinizde titreşiyordu. Bu muska, size biraz da olsa güç veriyor gibi.",
+                itemGained: 'Muska',
+                healthChange: +5,
+                choices: [
+                    { text: "Harabelerden uzaklaş ve ormanın kenarına ilerle.", nextScene: "perilous_pass" }
+                ]
+            },
+            village_safe_ending: {
+                text: "Yorgun argın köye ulaştınız. Köylüler sizi sıcak karşıladı ve size yardım ettiler. Hafızanız hala tam olarak yerine gelmese de, güvende ve huzurlu bir hayat sizi bekliyor. **İyi Bir Son.**",
+                choices: [],
+                ending: "neutral"
+            },
+            perilous_pass: {
+                text: "Sarp bir geçitten geçiyorsunuz. Yol dar ve kaygan. Aniden önünüze bir **Mantar Devriyesi** çıktı! Saldırmaya hazır görünüyor.",
+                choices: [
+                    { text: "Savaş.", nextScene: "fight_mushroom_patrol_start" }, // Savaş başlangıç sahnesine yönlendir
+                    { text: "Kaçmaya çalış.", nextScene: "attempt_flee" }
+                ],
+                onEnter: () => player.day++
+            },
+            fight_mushroom_patrol_start: { // Savaş başlangıç sahnesi
+                text: "Mantar Devriyesi ile savaşıyorsunuz! Ne yapacaksınız?",
+                onEnter: () => startCombat('Mantar Devriyesi', 'fungus_forest', 'death_creature_fight'),
+                choices: [] // Savaş sırasında butonlar startCombat tarafından eklenir
+            },
+            attempt_flee: {
+                text: "Mantar Devriyesi'nden kaçmaya çalıştınız, ama hızına yetişemeyip takılıp düştünüz. Devriye üzerinize basarak geçti ve ciddi şekilde yaralandınız.",
+                healthChange: -35,
+                choices: [
+                    { text: "Yaralı halde yola devam et.", nextScene: "fungus_forest" }
+                ]
+            },
+            fungus_forest: {
+                text: "Garip, parlayan mantarlarla dolu bir ormana ulaştınız. Mantarların bazıları yenebilir, bazıları ise zehirli gibi duruyor. Ortada büyük, titreyen bir mantar kütlesi var.",
+                choices: [
+                    { text: "Yenebilir mantar ara.", nextScene: "search_edible_fungus" },
+                    { text: "Titreyen mantar kütlesini incele.", nextScene: "examine_pulsating_fungus" }
+                ],
+                onEnter: () => player.day++
+            },
+            search_edible_fungus: {
+                text: "Yenebilir mantar aradınız ve şifalı, hafif bir **Mantar** buldunuz. Onu envanterinize eklediniz.",
+                itemGained: 'Mantar',
+                choices: [
+                    { text: "İlerlemeye devam et.", nextScene: "fungus_forest_exit" }
+                ]
+            },
+            examine_pulsating_fungus: {
+                text: "Titreyen mantar kütlesini incelediğinizde, içinden küçük, kristal bir **Hafıza Taşı** düştü! Onu aldığınızda, ormanın yaşlı ruhları hakkında fısıltılar duydunuz. Hafızanızın bir parçası daha geri geldi.",
+                itemGained: 'Hafıza Taşı',
+                choices: [
+                    { text: "İlerlemeye devam et.", nextScene: "fungus_forest_exit" }
+                ]
+            },
+            fungus_forest_exit: {
+                text: "Mantar ormanından çıktınız ve kendinizi antik bir geçidin başında buldunuz. Geçit, derin mağaralara iniyor gibi.",
+                choices: [
+                    { text: "Mağaralara in.", nextScene: "crystal_caves" }
+                ]
+            },
+            crystal_caves: {
+                text: "Kristal mağaralara indiniz. Duvarlar parlayan kristallerle kaplı. Burası hem büyüleyici hem de tehlikeli görünüyor. Uzaktan garip sesler geliyor.",
+                choices: [
+                    { text: "Seslerin geldiği yöne git.", nextScene: "investigate_sound" },
+                    { text: "Farklı bir patika ara.", nextScene: "search_new_path" }
+                ],
+                onEnter: () => player.day++
+            },
+            investigate_sound: {
+                text: "Seslerin geldiği yöne gittiğinizde, parlak bir **Parlayan Kılıç** buldunuz! Ancak kılıcın etrafında, kristallerden beslenen devasa bir örümcek yatıyordu. Savaşmaya hazır mısınız?",
+                choices: [
+                    { text: "Örümcekle savaş.", nextScene: "fight_spider_crystal_caves_start" }, // Savaş başlangıç sahnesine yönlendir
+                    { text: "Kılıcı bırak ve geri dön.", nextScene: "crystal_caves" }
+                ]
+            },
+            fight_spider_crystal_caves_start: { // Savaş başlangıç sahnesi
+                text: "Kristal örümcek size saldırıyor! Ne yapacaksınız?",
+                onEnter: () => startCombat('Kristal Örümcek', 'take_glowing_sword', 'death_creature_fight'),
+                choices: [] // Savaş sırasında butonlar dinamik olarak eklenir
+            },
+            take_glowing_sword: {
+                text: "Örümceği yendiniz ve **Parlayan Kılıç**'ı aldınız! Bu kılıç, daha önce gördüklerinizden çok daha güçlü görünüyor.",
+                weaponGained: 'Parlayan Kılıç',
+                choices: [
+                    { text: "Mağarada ilerlemeye devam et.", nextScene: "search_new_path" }
+                ]
+            },
+            search_new_path: {
+                text: "Mağarada yeni bir patika aradınız ve sonunda dışarıya çıkan bir tünel buldunuz. Dışarıda sizi Antik Tapınak'a giden gizemli bir yol bekliyor. Bu yolculukta yeni bir **Antik Parşömen** buldunuz. Görünüşe göre bu parşömen, tapınağın sırlarını açığa çıkarabilir.",
+                itemGained: 'Antik Parşömen',
+                onEnter: () => player.hasAncientScroll = true,
+                choices: [
+                    { text: "Antik Tapınak'a git.", nextScene: "ancient_temple_approach" }
+                ]
+            },
+            ancient_temple_approach: {
+                text: "Antik Tapınak'a giden yola ulaştınız. Tapınağın girişinde devasa, taştan bir **Antik Gözcü** bekliyor. Ona saldırmadan önce zayıflığını bulmanız gerekebilir. Envanterinizde **Antik Parşömen** var mı?",
+                choices: [
+                    { text: "Antik Gözcü ile savaş.", nextScene: "fight_ancient_watcher_start" }, // Savaş başlangıç sahnesine yönlendir
+                    { text: "Antik Parşömeni kullan (Gereklidir).", nextScene: "use_ancient_scroll", itemRequired: 'Antik Parşömen' }
+                ],
+                onEnter: () => player.day++
+            },
+            use_ancient_scroll: {
+                text: "Antik Parşömeni incelediniz. Gözcü'nün zayıflığına dair bilgiler içeriyor! Bu bilgiler sayesinde Gözcü'ye karşı avantajlısınız.",
+                itemLost: 'Antik Parşömen',
+                choices: [
+                    { text: "Antik Gözcü ile zayıflığını bilerek savaş.", nextScene: "fight_ancient_watcher_weakness_start" } // Savaş başlangıç sahnesine yönlendir
+                ]
+            },
+            fight_ancient_watcher_start: { // Savaş başlangıç sahnesi (zayıflık bilinmiyor)
+                text: "Antik Gözcü size saldırıyor! Oldukça güçlü ve darbe emiyor. Ne yapacaksınız?",
+                onEnter: () => startCombat('Antik Gözcü', 'ancient_temple_victory', 'death_creature_fight'),
+                choices: [] // Savaş sırasında butonlar dinamik olarak eklenir
+            },
+            fight_ancient_watcher_weakness_start: { // Savaş başlangıç sahnesi (zayıflık biliniyor)
+                text: "Antik Gözcü ile zayıflığını bilerek savaşıyorsunuz! Bu size büyük bir avantaj sağlıyor. Ne yapacaksınız?",
+                onEnter: () => startCombat('Antik Gözcü', 'ancient_temple_victory', 'death_creature_fight', true),
+                choices: [] // Savaş sırasında butonlar dinamik olarak eklenir
+            },
+            ancient_temple_victory: {
+                text: "Antik Gözcü'yü yendiniz! Tapınağın kapıları önünüzde açıldı. İçeride sizi bekleyen sadece hazineler değil, aynı zamanda bu ormanın ve kendi geçmişinizin tüm sırları var! **GERÇEK SON!**",
+                choices: [],
+                ending: "true_good"
+            },
+            // Ölüm senaryoları
+            death_swamp: {
+                text: "Bataklığa daha fazla dayanamadınız. Çamurun içine çekildiniz ve ormanın uğultulu sesleri arasında bilincinizi kaybettiniz. Vücudunuz asla bulunamadı. **ÖLDÜNÜZ!**",
+                choices: [],
+                ending: "bad_death"
+            },
+            death_creature_fight: {
+                text: "Yaratık çok hızlıydı. Bıçağınızla saldırmaya çalıştınız ama size üstün geldi. Son gördüğünüz şey, onun keskin pençeleri oldu. **ÖLDÜNÜZ!**",
+                choices: [],
+                ending: "bad_death"
+            },
+            death_starvation: {
+                text: "Günler geçti, açlık ve susuzluk dayanılmaz hale geldi. Vücudunuz bitkin düştü ve karanlık ormanın ortasında son nefesinizi verdiniz. Kimse sizi bulamadı. **Açlıktan ÖLDÜNÜZ!**",
+                choices: [],
+                ending: "bad_death"
+            },
+            travel_at_night: {
+                text: "Karanlığa rağmen ilerlemeye devam ettiniz. Yolunuzu kaybettiniz ve bir çukura düştünüz. Bacağınızı kırdınız ve yardım gelmeden oracıkta can verdiniz. **ÖLDÜNÜZ!**",
+                choices: [],
+                ending: "bad_death"
+            }
+        };
+
+        // Oyunun başlangıç durumu
+        function startGame() {
+            player.health = 100;
+            player.inventory = [];
+            player.weapon = 'Paslı Bıçak';
+            player.armor = null;
+            player.currentScene = 'start';
+            player.previousScene = null;
+            player.hasMapPiece = false;
+            player.hasAncientScroll = false;
+            player.day = 1;
+
+            updateUI();
+            gameOverMessage.style.display = 'none';
+            restartButton.style.display = 'none';
+            choicesElement.style.display = 'block';
+            displayScene(player.currentScene);
+        }
+
+        // Oyun arayüzünü güncelleme (Can, Envanter, Silah, Zırh)
+        function updateUI() {
+            healthDisplay.textContent = `Can: ${player.health} CP`;
+            inventoryDisplay.textContent = `Envanter: ${player.inventory.length > 0 ? player.inventory.join(', ') : 'Boş'}`;
+            weaponDisplay.textContent = `Silah: ${player.weapon ? player.weapon : 'Yok'}`;
+            armorDisplay.textContent = `Zırh: ${player.armor ? player.armor : 'Yok'}`;
+        }
+
+        // Sahneyi gösterme ve seçenekleri oluşturma
+        function displayScene(sceneId) {
+            const scene = story[sceneId];
+
+            if (!scene) {
+                console.error(`Hata: '${sceneId}' sahnesi bulunamadı. Oyun sona erdiriliyor.`);
+                endGame("default");
+                return;
+            }
+
+            // Savaş sahnelerinde doğrudan onEnter çağrısı ile savaş başlatılır,
+            // bu yüzden ana choices rendering'i atlanır ve startCombat kendi butonlarını oluşturur.
+            if (scene.onEnter && sceneId.includes('_start') && scene.onEnter.toString().includes('startCombat')) {
+                 storyTextElement.textContent = scene.text; // Savaş başlangıç metnini göster
+                 choicesElement.innerHTML = ''; // Seçenekleri temizle
+                 scene.onEnter(); // startCombat'ı tetikle
+                 return; // Ana choices döngüsünü atla
+            }
+
+
+            // Normal sahne akışı
+            if (scene.onEnter) {
+                scene.onEnter();
+            }
+
+            if (scene.healthChange) {
+                player.health += scene.healthChange;
+                if (player.health > 100) player.health = 100;
+            }
+
+            if (player.health <= 0) {
+                endGame("health_zero");
+                return;
+            }
+
+            if (scene.itemGained) {
+                if (!player.inventory.includes(scene.itemGained)) {
+                    player.inventory.push(scene.itemGained);
+                }
+            }
+            if (scene.itemGained2) {
+                if (!player.inventory.includes(scene.itemGained2)) {
+                    player.inventory.push(scene.itemGained2);
+                }
+            }
+
+            if (scene.weaponGained) {
+                if (!player.weapon || (weapons[scene.weaponGained] && weapons[player.weapon] && weapons[scene.weaponGained].damage > weapons[player.weapon].damage)) {
+                    player.weapon = scene.weaponGained;
+                } else if (!player.inventory.includes(scene.weaponGained)) {
+                    player.inventory.push(scene.weaponGained);
+                }
+            }
+
+            if (scene.armorGained) {
+                if (!player.armor || (armors[scene.armorGained] && armors[player.armor] && armors[scene.armorGained].defense > armors[player.armor].defense)) {
+                    player.armor = scene.armorGained;
+                } else if (!player.inventory.includes(scene.armorGained)) {
+                    player.inventory.push(scene.armorGained);
+                }
+            }
+
+            if (scene.itemLost) {
+                const index = player.inventory.indexOf(scene.itemLost);
+                if (index > -1) {
+                    player.inventory.splice(index, 1);
+                }
+            }
+
+            updateUI();
+
+            storyTextElement.textContent = scene.text;
+            choicesElement.innerHTML = '';
+
+            if (scene.choices && scene.choices.length > 0) {
+                scene.choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.textContent = choice.text;
+                    button.onclick = () => choose(typeof choice.nextScene === 'function' ? choice.nextScene(player) : choice.nextScene);
+
+                    if (choice.itemRequired) {
+                        let hasRequired = false;
+                        if (player.inventory.includes(choice.itemRequired)) {
+                            hasRequired = true;
+                        }
+                        if (player.weapon === choice.itemRequired) {
+                            hasRequired = true;
+                        }
+                        if (player.armor === choice.itemRequired) {
+                            hasRequired = true;
+                        }
+
+                        if (!hasRequired) {
+                            button.disabled = true;
+                            button.title = `${choice.itemRequired} gerekli!`;
+                        }
+                    }
+
+                    choicesElement.appendChild(button);
+                });
+
+                if (player.inventory.includes('Mantar') && player.health < 100) {
+                    const useMushroomButton = document.createElement('button');
+                    useMushroomButton.textContent = "Envanterdeki Mantarı Kullan (Can: +20)";
+                    useMushroomButton.className = "inventory-action-button";
+                    useMushroomButton.onclick = () => useItem('Mantar');
+                    choicesElement.appendChild(useMushroomButton);
+                }
+                if (player.inventory.includes('İksir') && player.health < 100) {
+                    const usePotionButton = document.createElement('button');
+                    usePotionButton.textContent = "Envanterdeki İksiri Kullan (Can: +50)";
+                    usePotionButton.className = "inventory-action-button";
+                    usePotionButton.onclick = () => useItem('İksir');
+                    choicesElement.appendChild(usePotionButton);
+                }
+
+            } else {
+                endGame(scene.ending || "default");
+            }
+        }
+
+        function choose(nextSceneId) {
+            player.previousScene = player.currentScene;
+            player.currentScene = nextSceneId;
+            displayScene(player.currentScene);
+        }
+
+        function useItem(item) {
+            let tempText = "";
+            let healthChange = 0;
+
+            if (item === 'Mantar' && player.inventory.includes('Mantar')) {
+                healthChange = 20;
+                tempText = "Mantar yedin ve biraz canın yenilendi.";
+                const index = player.inventory.indexOf('Mantar');
+                player.inventory.splice(index, 1);
+            } else if (item === 'İksir' && player.inventory.includes('İksir')) {
+                healthChange = 50;
+                tempText = "İksiri içtin ve kendini çok daha iyi hissettin!";
+                const index = player.inventory.indexOf('İksir');
+                player.inventory.splice(index, 1);
+            }
+
+            player.health += healthChange;
+            if (player.health > 100) player.health = 100;
+
+            storyTextElement.textContent = tempText;
+            updateUI();
+
+            setTimeout(() => displayScene(player.currentScene), 1000);
+        }
+
+
+        function startCombat(creatureName, successScene, deathScene, weaknessKnown = false) {
+            const creature = creatures[creatureName];
+            let creatureHealth = creature.health;
+            const creatureAttack = creature.attack;
+
+            const playerDamage = player.weapon ? weapons[player.weapon].damage : 5;
+            const playerDefense = player.armor ? armors[player.armor].defense : 0;
+
+            // Savaş metnini ve butonları oluştur
+            let combatText = `${creatureName} ile savaşa girdin! Canı: ${creatureHealth} CP. Senin canın: ${player.health} CP.`;
+            storyTextElement.textContent = combatText;
+            choicesElement.innerHTML = ''; // Önceki butonları temizle
+
+            const attackButton = document.createElement('button');
+            attackButton.textContent = "Saldır!";
+            // Tıklama olayını doğrudan atama, döngü içinde yeniden atanmadığından emin ol
+            attackButton.onclick = () => {
+                // Oyuncu saldırısı
+                let actualPlayerDamage = playerDamage;
+                if (creature.weakness && player.inventory.includes(creature.weakness) && weaknessKnown) {
+                    actualPlayerDamage *= 2; // Zayıflık bilindiğinde ekstra hasar
+                    if (creature.weakness === 'Antik Parşömen') {
+                        const index = player.inventory.indexOf('Antik Parşömen');
+                        if (index > -1) player.inventory.splice(index, 1);
+                    }
+                }
+                creatureHealth -= actualPlayerDamage;
+                combatText = `Saldırdın! ${creatureName} ${actualPlayerDamage} CP hasar aldı. Kalan canı: ${creatureHealth} CP. `;
+
+                if (creatureHealth <= 0) {
+                    storyTextElement.textContent = combatText + `${creatureName} yenildi!`;
+                    if (creature.itemDrop) {
+                        if (creature.itemDrop in weapons) {
+                            if (!player.weapon || (weapons[creature.itemDrop] && weapons[player.weapon] && weapons[creature.itemDrop].damage > weapons[player.weapon].damage)) {
+                                player.weapon = creature.itemDrop;
+                                storyTextElement.textContent += ` Yeni silahın: ${creature.itemDrop}!`;
+                            } else if (!player.inventory.includes(creature.itemDrop)) {
+                                player.inventory.push(creature.itemDrop);
+                                storyTextElement.textContent += ` ${creature.itemDrop} envanterine eklendi.`;
+                            }
+                        } else if (creature.itemDrop in armors) {
+                            if (!player.armor || (armors[creature.itemDrop] && armors[player.armor] && armors[creature.itemDrop].defense > armors[player.armor].defense)) {
+                                player.armor = creature.itemDrop;
+                                storyTextElement.textContent += ` Yeni zırhın: ${creature.itemDrop}!`;
+                            } else if (!player.inventory.includes(creature.itemDrop)) {
+                                player.inventory.push(creature.itemDrop);
+                                storyTextElement.textContent += ` ${creature.itemDrop} envanterine eklendi.`;
+                            }
+                        } else if (!player.inventory.includes(creature.itemDrop)) {
+                            player.inventory.push(creature.itemDrop);
+                            storyTextElement.textContent += ` ${creature.itemDrop} kazandın!`;
+                        }
+                    }
+                    updateUI();
+                    // Savaş bittikten sonra doğrudan başarı sahnesine geçiş
+                    setTimeout(() => choose(successScene), 1500);
+                    return;
+                }
+
+                // Yaratık saldırısı
+                let actualCreatureDamage = Math.max(0, creatureAttack - playerDefense);
+                player.health -= actualCreatureDamage;
+                combatText += `${creatureName} sana saldırdı! ${actualCreatureDamage} CP hasar aldın. Kalan canın: ${player.health} CP.`;
+                storyTextElement.textContent = combatText;
+                updateUI();
+
+                if (player.health <= 0) {
+                    storyTextElement.textContent = combatText + ` Canın kalmadı. **ÖLDÜN!**`;
+                    setTimeout(() => endGame("health_zero"), 1500);
+                    return;
+                }
+            };
+            choicesElement.appendChild(attackButton);
+
+            const fleeButton = document.createElement('button');
+            fleeButton.textContent = "Kaçmaya Çalış (-10 Can)";
+            fleeButton.onclick = () => {
+                player.health -= 10;
+                updateUI();
+                storyTextElement.textContent = `Kaçmaya çalıştın ve biraz can kaybettin. Başarılı bir şekilde uzaklaştın.`;
+                if (player.health <= 0) {
+                    setTimeout(() => endGame("health_zero"), 1500);
+                    return;
+                }
+                // Kaçış sonrası önceki sahneye veya varsayılan bir yola dön
+                setTimeout(() => choose(player.previousScene || 'continue_path'), 1500);
+            };
+            choicesElement.appendChild(fleeButton);
+
+            // Zayıflık eşyası kullanma butonu (savaş içinde)
+            if (creature.weakness && player.inventory.includes(creature.weakness) && !weaknessKnown) {
+                const useWeaknessItemButton = document.createElement('button');
+                useWeaknessItemButton.textContent = `${creature.weakness} Kullan`;
+                useWeaknessItemButton.className = "inventory-action-button";
+                useWeaknessItemButton.onclick = () => {
+                    const index = player.inventory.indexOf(creature.weakness);
+                    if (index > -1) {
+                        player.inventory.splice(index, 1);
+                        storyTextElement.textContent = `${creature.weakness} kullanarak ${creatureName}'yi zayıflattın! Kolayca yendin!`;
+                        updateUI();
+                        setTimeout(() => choose(successScene), 1500);
+                    }
+                };
+                choicesElement.appendChild(useWeaknessItemButton);
+            }
+        }
+
+        function endGame(endingType) {
+            choicesElement.style.display = 'none';
+            restartButton.style.display = 'inline-block';
+            gameOverMessage.style.display = 'block';
+            storyTextElement.textContent = "";
+
+            let message = "";
+            let messageColor = '#e74c3c';
+
+            switch (endingType) {
+                case "health_zero":
+                    message = "Canınız bitti. Karanlık sizi yuttu. **ÖLDÜNÜZ!**";
+                    break;
+                case "bad_death":
+                    message = story[player.currentScene].text;
+                    break;
+                case "neutral":
+                    message = story[player.currentScene].text;
+                    messageColor = '#3498db';
+                    break;
+                case "good":
+                    message = story[player.currentScene].text;
+                    messageColor = '#2ecc71';
+                    break;
+                case "true_good":
+                    message = story[player.currentScene].text;
+                    messageColor = '#f1c40f';
+                    break;
+                default:
+                    message = "Hikaye burada sona erdi. Maceranız bitti.";
+                    messageColor = '#bdc3c7';
+                    break;
+            }
+            gameOverMessage.textContent = message;
+            gameOverMessage.style.color = messageColor;
+        }
+
+        document.addEventListener('DOMContentLoaded', startGame);
+    </script>
+</body>
+</html>
